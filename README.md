@@ -15,7 +15,7 @@ The backend is powered by **FastAPI** for model inference, and the frontend is c
 
 ---
 
-![UI Preview](\Demo.png)
+![UI Preview](Demo.png)
 
 
 ##  Project Structure
