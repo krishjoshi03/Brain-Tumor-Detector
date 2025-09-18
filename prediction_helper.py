@@ -1,15 +1,11 @@
 import torch
 from torchvision import transforms, models
-from fastapi import FastAPI, File, UploadFile
 from PIL import Image
-import io
-
-app = FastAPI()
-
-device = torch.device("cpu")
 
 # Classes
 classes = ['glioma', 'meningioma', 'notumor', 'pituitary']
+
+device = torch.device("cpu")
 
 # Model definition
 class TumorClassifierRES(torch.nn.Module):
@@ -40,15 +36,11 @@ transform = transforms.Compose([
     transforms.Normalize(mean=[0.485,0.456,0.406], std=[0.229,0.224,0.225])
 ])
 
-@app.post("/predict/")
-async def predict(file: UploadFile = File(...)):
-    image = Image.open(io.BytesIO(await file.read())).convert("RGB")
-    tensor = transform(image).unsqueeze(0)
+def predict_image(image):
+    """Take a PIL image and return prediction + confidence"""
+    tensor = transform(image).unsqueeze(0).to(device)
     with torch.no_grad():
         outputs = model(tensor)
         prob = torch.nn.functional.softmax(outputs, dim=1)
         confidence, pred_idx = torch.max(prob, 1)
-        return {
-            "class": classes[pred_idx.item()],
-            "confidence": confidence.item()
-        }
+    return classes[pred_idx.item()], confidence.item()
